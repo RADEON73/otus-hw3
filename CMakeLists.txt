@@ -10,6 +10,9 @@ project(CustomAllocator VERSION 1.0.0)
 
 add_executable(main 
 main.cpp
+MyAllocator.cpp
+MyContainer.cpp
+MyMapWrapper.cpp
 )
 # add_library(ip_filter_lib
 # IpAddress.cpp IpAddress.h
@@ -22,9 +25,10 @@ set_target_properties(main PROPERTIES
     CXX_STANDARD_REQUIRED ON
 )
 
-# target_include_directories(ip_filter_lib PRIVATE 
-	# "${CMAKE_BINARY_DIR}"
-# )
+#target_include_directories(main PUBLIC 
+#	"${CMAKE_BINARY_DIR}"
+#	"${CMAKE_SOURCE_DIR}"
+#)
 
 # target_link_libraries(main PRIVATE
     # ip_filter_lib

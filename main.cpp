@@ -1,6 +1,12 @@
 #include <iostream>
-#include <map>
+#include <utility>
+#include <memory>
+#include <type_traits>
+#include "MyMapWrapper.cpp"
 #include "MyContainer.cpp"
+#include "MyAllocator.cpp"
+#include <string>
+#include <vector>
 
 int factorial(int n)
 {
@@ -11,40 +17,34 @@ int factorial(int n)
     return result;
 }
 
-constexpr int size = 10;
+constexpr int size = 10; //До скольки заполнять массивы
 
 int main()
 {
-    std::map<int, int> defaultMap;
+    std::cout << "Map with default std::allocator: " << std::endl;
+    MyMapWrapper<int, int> defaultMap;
     for (int i = 0; i < size; ++i)
         defaultMap[i] = factorial(i);
-    for (auto const& [num, fact] : defaultMap)
-        std::cout << num << " " << fact << std::endl;
-    
-    using Alloc = FixedSizeAllocator<std::pair<const int, int>>;
-    std::map<int, int, std::less<int>, Alloc> myMap;
+    defaultMap.print();
+
+    std::cout << "Map with myAllocator: " << std::endl;
+    using CustomAllocator = MyAllocator<std::pair<const int, int>>;
+    MyMapWrapper<int, int, std::less<int>, CustomAllocator> myMap;
     for (int i = 0; i < size; ++i)
         myMap[i] = factorial(i);
-    for (auto const& [num, fact] : myMap)
-        std::cout << num << " " << fact << std::endl;
+    myMap.print();
 
-
+    std::cout << "Container with default allocator: " << std::endl;
     MyContainer<int, std::allocator<int>> defaultContainer;
-    for (int i = 0; i < 10; ++i)
-        defaultContainer.add(i);
-    std::cout << "Container with std::allocator: ";
-    for (const auto& value : defaultContainer) {
-        std::cout << value << " ";
+    for (int i = 0; i < size; ++i) {
+        defaultContainer.insert(i);
     }
-    std::cout << std::endl;
+    defaultContainer.print();
 
-    MyContainer<int, FixedSizeAllocator<int>> myContainer;
-    for (int i = 0; i < 10; ++i) {
-        myContainer.add(i);
+    std::cout << "Container with myAllocator: " << std::endl;
+    MyContainer<int, MyAllocator<int>> myContainer;
+    for (int i = 0; i < size; ++i) {
+        myContainer.insert(i);
     }
-    std::cout << "Container with myAllocator: ";
-    for (const auto& value : myContainer) {
-        std::cout << value << " ";
-    }
-    std::cout << std::endl;
+    myContainer.print();
 }

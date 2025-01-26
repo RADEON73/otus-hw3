@@ -1,0 +1,41 @@
+#pragma once
+#include <type_traits>
+#include <memory>
+#include <utility>
+#include <map>
+#include <iostream>
+#include <ostream>
+
+template <typename KeyType, typename ValueType, typename Compare = std::less<KeyType>, typename Alloc = std::allocator<std::pair<const KeyType, ValueType>>>
+class MyMapWrapper
+{
+public:
+    using MapType = std::map<KeyType, ValueType, Compare, Alloc>;
+
+    MyMapWrapper() = default;
+
+    ValueType& operator[](const KeyType& key)
+    {
+        return map_[key];
+    }
+
+    const ValueType& operator[](const KeyType& key) const
+    {
+        return map_.at(key);
+    }
+
+    void insert(KeyType key, ValueType value)
+    {
+        map_[key] = value;
+    }
+
+    void print() const
+    {
+        for (const auto& [key, value] : map_) {
+            std::cout << key << " " << value << std::endl;
+        }
+    }
+
+private:
+    MapType map_;
+};

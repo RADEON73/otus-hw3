@@ -18,7 +18,6 @@ public:
 
     explicit MyContainer(const Alloc& alloc = Alloc()) : alloc_(alloc) {}
 
-    // Конструктор копирования
     MyContainer(const MyContainer& other) : size_(other.size_), capacity_(other.capacity_)
     {
         data_ = alloc_.allocate(capacity_);
@@ -27,7 +26,6 @@ public:
         }
     }
 
-    // Конструктор перемещения
     MyContainer(MyContainer&& other) noexcept
         : alloc_(std::move(other.alloc_)), data_(other.data_), size_(other.size_), capacity_(other.capacity_)
     {
@@ -41,7 +39,6 @@ public:
         clear();
     }
 
-    // Оператор копирования
     MyContainer& operator=(const MyContainer& other)
     {
         if (this != &other) {
@@ -56,7 +53,6 @@ public:
         return *this;
     }
 
-    // Оператор перемещения
     MyContainer& operator=(MyContainer&& other) noexcept
     {
         if (this != &other) {
@@ -181,7 +177,7 @@ public:
             std::cout << "Container try to reallocated new capacity - " << new_capacity << std::endl;
         for (size_type i = 0; i < size_; ++i) {
             new (new_data + i) T(std::move(data_[i]));
-            data_[i].~T();  // Уничтожаем старые элементы
+            data_[i].~T();
         }
         alloc_.deallocate(data_, capacity_);
         data_ = new_data;
@@ -243,8 +239,8 @@ public:
     iterator end() { return iterator(data_ + size_); }
 
 private:
-    allocator_type alloc_;
-    pointer data_{ nullptr };
-    size_type size_{ 0 };
-    size_type capacity_{ 0 };
+    allocator_type alloc_; //Аллокатор
+    pointer data_{ nullptr }; //Буфер с данными
+    size_type size_{ 0 }; //Размер
+    size_type capacity_{ 0 }; //Емкость
 };

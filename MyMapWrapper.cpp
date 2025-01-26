@@ -36,6 +36,28 @@ public:
         }
     }
 
+    int factorial(int n) const
+    {
+        int result = 1;
+        for (int i = 1; i <= n; ++i) {
+            result *= i;
+        }
+        return result;
+    }
+
+    void fill(int n)
+    {
+        static std::map<int, int> memo;
+
+        for (int i = 0; i < n; ++i) {
+            if (!memo.contains(i)) {
+                memo[i] = factorial(i);
+            }
+            map_[i] = memo[i];
+        }
+    }
+
+
 private:
     MapType map_;
 };

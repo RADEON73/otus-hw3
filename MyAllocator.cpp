@@ -1,3 +1,4 @@
+#pragma once
 #include <iostream>
 #include <exception>
 #include <utility>
@@ -9,7 +10,7 @@ class MyAllocator
 {
 public:
     using value_type = T;
-    using pointer = T*;  // Определяем необходимые типы
+    using pointer = T*;
     using const_pointer = const T*;
     using reference = T&;
     using const_reference = const T&;
@@ -28,7 +29,7 @@ public:
     MyAllocator() = default;
     ~MyAllocator() = default;
 
-    int findFreeMemorySpace(size_t n) const //передаю количество необходимого места (в объектах)
+    int findFreeMemorySpace(size_t n) const
     {
         for (int i = 0; i < (clusterSize - n); ++i) {
             bool busy = true;
@@ -51,77 +52,63 @@ public:
             if (n == 0)
                 return nullptr;
             if (n > clusterSize)
-                throw std::bad_alloc();  // Ошибка
+                throw std::bad_alloc();
 
             if (!allocated) {
                 if (MYALLOCATOR_DEBUG_MESSAGE_ON)
                     std::cout << "Allocating " << sizeof(T) * clusterSize << " bytes for " << clusterSize << " elements\n";
                 memoryPool = static_cast<T*>(::operator new(sizeof(T) * clusterSize));
                 memoryChecksum = static_cast<bool*>(::operator new(sizeof(bool) * clusterSize));
-                allocated = true; //Пометить, что память выделена
+                allocated = true;
                 for (int i = 0; i < clusterSize; ++i)
-                    memoryChecksum[i] = false; //Пометить всю область как неразмеченную
+                    memoryChecksum[i] = false;
 
             }
             freeMemorySpacePointer = findFreeMemorySpace(n);
             if (freeMemorySpacePointer == -1)
                 throw std::bad_alloc();
             for (int i = freeMemorySpacePointer; i < freeMemorySpacePointer + n; i++)
-                memoryChecksum[i] = true; //Пометить место как размеченное
+                memoryChecksum[i] = true;
 
         }
         catch (const std::bad_alloc& e) {
             clusterSize = std::max(static_cast<int>(n), clusterSize * 2);
             if (MYALLOCATOR_DEBUG_MESSAGE_ON)
-                std::cerr << "Error: " << e.what() << ". Buffer filled, resize to new buffer : " << clusterSize << std::endl; //Считаем ошибкой большее число элементов, но разрешаю расширяемость памяти
+                std::cerr << "Error: " << e.what() << ". Buffer filled, resize to new buffer : " << clusterSize << std::endl;
             allocated = false;
             allocate(n);
         }
-        return &memoryPool[freeMemorySpacePointer]; //Выдать системе указатель на участок памяти
+        return &memoryPool[freeMemorySpacePointer];
     }
 
     void deallocate(T* p, std::size_t n)
     {
-        //if (n == 0)
-        //    return;
-        //int idx = p - &memoryPool[0]; //Счтть индекс элемента
-        //if (idx <= 0)
-        //    return;
-        //for (int i = idx; i < idx + n; i++)
-        //    memoryChecksum[i] = false; //Пометить память как доступную
+        if (p == nullptr || n == 0)
+            return;
+        int idx = p - &memoryPool[0];
+        if (idx < 0 || idx >= clusterSize)
+            return;
+        for (int i = idx; i < idx + n; ++i)
+            memoryChecksum[i] = false;
     };
 
-    // Методы для конструирования и уничтожения объектов
-    //void construct(T* p, const T& value)
-    //{
-    //    new(p) T(value);  // Вызываем конструктор T(value) для объекта, расположенного по адресу p
-    //}
-
-    //template<typename U, typename ...Args>
-    //void construct(U* p, Args &&...args)
-    //{
-    //    new(p) U(std::forward<Args>(args)...);
-    //}
-
-    //void destroy(T* p)
-    //{
-    //    p->~T();  // Вызываем деструктор для объекта
-    //}
+    void clear()
+    {
+        if (allocated) {
+            for (int i = 0; i < clusterSize; ++i) {
+                if (memoryChecksum[i]) {
+                    memoryPool[i].~T();
+                }
+            }
+            ::operator delete(memoryPool);
+            ::operator delete(memoryChecksum);
+        }
+        allocated = false;
+    }
 
 private:
     T* memoryPool{ nullptr }; // Указатель на выделенную память
     bool* memoryChecksum{ nullptr }; // Указатель на массив с индикацией состояния памяти (true бит - занятый уасток памяти равный Т)
     bool allocated{ false }; // Флаг, указывающий, что память была выделена
-    int clusterSize = 15; //Рамер буфера элементов по сколько релоцируетс память (не самого количества элементов, а памяти под reserve)
+    int clusterSize = 15; //Рамер буфера элементов по сколько релоцируется память (не самого количества элементов, а памяти под reserve)
 };
-
-/* operator==(const MyAllocator<T1>&, const MyAllocator<T2>&)
-{
-    return true;
-}
-
-template <typename T1, typename T2>
-bool operator!=(const MyAllocator<T1>&, const MyAllocator<T2>&)
-{
-    return false;
-}*/

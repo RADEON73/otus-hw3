@@ -35,5 +35,5 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./CustomAllocator-1.0.0-Linux.deb
-          asset_name: CustomAllocator-1.0.0-Linux-Linux.deb
+          asset_name: CustomAllocator-1.0.0-Linux.deb
           asset_content_type: application/vnd.debian.binary-package
